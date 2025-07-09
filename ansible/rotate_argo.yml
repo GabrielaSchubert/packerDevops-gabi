@@ -1,0 +1,24 @@
+---
+- name: Obter e exibir a senha inicial do Argo CD
+  hosts: webservers
+  become: yes
+
+  tasks:
+    - name: Obter senha inicial do Argo CD
+      command: >
+        kubectl get secret argocd-initial-admin-secret -n argo-cd -o jsonpath="{.data.password}"
+      register: argocd_password_raw
+
+    - name: Decodificar senha do Argo CD
+      shell: echo "{{ argocd_password_raw.stdout }}" | base64 -d
+      register: decoded_password
+
+    - name: Exibir senha do Argo CD (admin)
+      debug:
+        msg: "Senha do Argo CD (usuário: admin): {{ decoded_password.stdout }}"
+
+    - name: Expondo as portas
+      command: >
+        kubectl port-forward svc/argocd-server 
+        -n argo-cd 
+        --address 0.0.0.0 8080:443
