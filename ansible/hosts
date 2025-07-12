@@ -1,5 +1,5 @@
 [webservers]
-webserver1 ansible_host=191.52.55.146
+webserver1 ansible_host=191.52.55.65
 
 [all:vars]
 ansible_ssh_private_key_file=/home/gabriela.schubert/.ssh/id_rsa
