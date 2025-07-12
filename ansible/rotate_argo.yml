@@ -16,9 +16,6 @@
     - name: Exibir senha do Argo CD (admin)
       debug:
         msg: "Senha do Argo CD (usuário: admin): {{ decoded_password.stdout }}"
-
     - name: Expondo as portas
-      command: >
-        kubectl port-forward svc/argocd-server 
-        -n argo-cd 
-        --address 0.0.0.0 8080:443
+      command: > 
+       kubectl port-forward svc/argocd-server -n argo-cd --address 0.0.0.0 8080:443

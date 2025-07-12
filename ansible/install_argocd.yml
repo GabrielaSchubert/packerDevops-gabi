@@ -1,43 +1,89 @@
 ---
-- name: Instalando o Argocd
+- name: Instalando o ArgoCD
   hosts: webservers
   become: yes
 
   tasks:
-  - name: Criando o Namespace
-    command: >
-      kubectl create namespace argo-cd
-    ignore_errors: yes
+    - name: Criando o Namespace
+      command: kubectl create namespace argo-cd
+      ignore_errors: yes
 
-  - name: Instalando o Argocd
-    command: >
-      kubectl apply 
-      -n argo-cd 
-      -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-  
-  - name: Espera o Argocd Executar
-    command: >
-      kubectl wait
-      --for=condition=available
-      --timeout=180s deployment 
-      --all
-      -n argo-cd
+    - name: Instalando o ArgoCD
+      command: >
+        kubectl apply 
+        -n argo-cd 
+        -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-  - name: Obter senha inicial do Argo CD
-    command: >
-      kubectl get secret argocd-initial-admin-secret -n argo-cd -o jsonpath="{.data.password}"
-    register: argocd_password_raw
+    - name: Espera o ArgoCD executar
+      command: >
+        kubectl wait
+        --for=condition=available
+        --timeout=180s 
+        deployment 
+        --all 
+        -n argo-cd
 
-  - name: Decodificar senha do Argo CD
-    shell: echo "{{ argocd_password_raw.stdout }}" | base64 -d
-    register: decoded_password
+    - name: Obter senha inicial do Argo CD
+      command: >
+        kubectl get secret argocd-initial-admin-secret 
+        -n argo-cd 
+        -o jsonpath="{.data.password}"
+      register: argocd_password_raw
+      failed_when: false  # Em versões mais novas esse secret pode não existir
 
-  - name: Exibir senha do Argo CD (admin)
-    debug:
-      msg: "Senha do Argo CD (usuário: admin): {{ decoded_password.stdout }}"      
+    - name: Decodificar senha do Argo CD
+      shell: echo "{{ argocd_password_raw.stdout }}" | base64 -d
+      register: decoded_password
+      when: argocd_password_raw.stdout != ""
 
-  - name: Expondo as portas
-    command: >
-      kubectl port-forward svc/argocd-server 
-      -n argo-cd 
-      --address 0.0.0.0 8080:443
+    - name: Exibir senha do Argo CD (admin)
+      debug:
+        msg: "Senha do Argo CD (usuário: admin): {{ decoded_password.stdout | default('Senha não encontrada') }}"
+
+    - name: Obter conteúdo do kubeconfig
+      become: yes
+      become_user: vagrant
+      command: kind get kubeconfig --name dev-cluster
+      register: kubeconfig_output
+      environment:
+        HOME: "/home/vagrant"
+
+    - name: Salvar kubeconfig no arquivo
+      copy:
+        dest: /home/vagrant/.kube/config
+        content: "{{ kubeconfig_output.stdout }}"
+        owner: vagrant
+        group: vagrant
+        mode: '0644'
+
+    - name: Conceder permissões ao ArgoCD
+      copy:
+        dest: /home/vagrant/argo-rbac.yaml
+        content: |
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: ClusterRoleBinding
+          metadata:
+            name: argocd-application-controller-cluster-access
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: cluster-admin
+          subjects:
+            - kind: ServiceAccount
+              name: argocd-application-controller
+              namespace: argo-cd
+        owner: vagrant
+        group: vagrant
+        mode: '0644'
+
+    - name: Aplicar RBAC no cluster
+      become: yes
+      become_user: vagrant
+      command: kubectl apply -f /home/vagrant/argo-rbac.yaml
+      environment:
+        KUBECONFIG: "/home/vagrant/.kube/config"
+
+    # - name: Expondo as portas (localmente)
+    #   shell: nohup kubectl port-forward svc/argocd-server -n argo-cd --address 0.0.0.0 8080:443 &
+    #   async: 1
+    #   poll: 0
