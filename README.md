@@ -89,6 +89,7 @@ vagrant up
 
 
 **Configuração dos nós:**
+
 1 control plane
 
 
@@ -111,13 +112,13 @@ kubectl get nodes
 **Instalação do ArgoCD:**
 - Instalado através do Ansible (**install_argocd.yml**)
 
+- Deploy via YAML oficial de instalação no cluster Kind
 
--Deploy via YAML oficial de instalação no cluster Kind
+- Configuração do serviço para acesso local via NodePort
 
+- Login com usuário admin e senha gerada através do Ansible (**rotate_argo.yml**)
 
--Configuração do serviço para acesso local via NodePort
--Login com usuário admin e senha gerada através do Ansible (**rotate_argo.yml**)
--Conectado ao GitHub para monitoramento
+- Conectado ao GitHub para monitoramento
 
 
 ### Configuração do repositório Git:
@@ -180,11 +181,11 @@ Adicionar URL local de acesso após subida: 191.52.55.65:4444
 Para reproduzir o projeto clone os repositórios
 ```bash
 FrontEnd
-https://github.com/GabrielaSchubert/frontend-fullstack.git
+$ git clone https://github.com/GabrielaSchubert/frontend-fullstack.git
 BackEnd
-https://github.com/GabrielaSchubert/todolist-fullstack-backend.git
+$ git clone https://github.com/GabrielaSchubert/todolist-fullstack-backend.git
 Infraestrutura
-https://github.com/GabrielaSchubert/packerDevops-gabi.git
+$ git clone https://github.com/GabrielaSchubert/packerDevops-gabi.git
 ```
 Após esse passo execute o **packer e vagrant** conforme os passos passados anteriormente, depois verifique o cluster, acesse o **ArgoCD**, conecte os repositórios **Git** e acesse a aplicação com o **IP da máquina e porta NodePort**.
 ## :heavy_check_mark: Conclusão 
@@ -198,14 +199,14 @@ Após esse passo execute o **packer e vagrant** conforme os passos passados ante
 - Aplicação do ArgoCD facilitando o deploy contínuo
 
 
-- **Dificuldades encontradas:**
+**Dificuldades encontradas:**
 - Compreender as práticas de Devops, como integração de Contêineres e Kind
 
 
 - Curva de aprendizado de ferramentos como o Kubernetes e ArgoCD
 
 
-- **O que faria diferente:**
+**O que faria diferente:**
 - Separar melhor o ambiente de trabalho, como pastas e arquivos
 
 
