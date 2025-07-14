@@ -127,10 +127,10 @@ kubectl get nodes
 **Repositório GitHub configurado com a estrutura:**
 
 ```bash
-:file_folder: /packer-Devops-gabi (Packer, Vagrant)
-:file_folder: /todolist-fullstack-backend (aplicação backend)
-:file_folder: /frontend-fullstack (aplicação frontend)
-:file_folder: /k8s (Deployment, Kustomization e Service)
+/packer-Devops-gabi (Packer, Vagrant)
+/todolist-fullstack-backend (aplicação backend)
+/frontend-fullstack (aplicação frontend)
+/k8s (Deployment, Kustomization e Service)
 ```
 **ArgoCD:** configurado para monitorar a pasta /k8s para deploy automatizado
 
